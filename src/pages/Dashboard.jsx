@@ -3,7 +3,7 @@ import { addPassword, listPasswords } from "../api/api";
 import PasswordInput from "../components/PasswordInput";
 import { useNavigate } from "react-router-dom";
 
-const Dashboard = ({ user_id }) => {
+const Dashboard = ({ user_id, onLogout }) => {
   const [website, setWebsite] = useState("");
   const [loginUsername, setLoginUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -21,14 +21,15 @@ const Dashboard = ({ user_id }) => {
 
   const handleAddPassword = async (e) => {
     e.preventDefault();
-    let strengthLabel = "weak";
+
+    let strengthLabel = "Weak";
     if (
       password.length >= 6 &&
       /[A-Z]/.test(password) &&
       /[0-9]/.test(password)
     )
-      strengthLabel = "strong";
-    else if (password.length >= 6) strengthLabel = "medium";
+      strengthLabel = "Strong";
+    else if (password.length >= 6) strengthLabel = "Medium";
 
     await addPassword({
       user_id,
@@ -46,13 +47,14 @@ const Dashboard = ({ user_id }) => {
 
   const handleLogout = () => {
     localStorage.removeItem("user_id");
+    if (onLogout) onLogout();
     navigate("/login");
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-8 p-4">
+    <div className="max-w-5xl mx-auto mt-8 p-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-3xl font-bold">Dashboard</h1>
         <button
           onClick={handleLogout}
           className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
@@ -101,15 +103,30 @@ const Dashboard = ({ user_id }) => {
             className="p-4 border rounded bg-gray-50 shadow-sm flex justify-between items-center"
           >
             <div>
-              <p className="font-bold">{p.website}</p>
+              <p className="font-bold text-lg">{p.website}</p>
               <p className="text-sm">{p.login_username}</p>
-              <p className="text-sm">Strength: {p.strength}</p>
+              <p className="text-sm">
+                Strength:{" "}
+                <span
+                  className={`font-semibold ${
+                    p.strength === "Weak"
+                      ? "text-red-500"
+                      : p.strength === "Medium"
+                      ? "text-yellow-400"
+                      : "text-green-500"
+                  }`}
+                >
+                  {p.strength}
+                </span>
+              </p>
             </div>
             <button
               className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-              onClick={() => navigator.clipboard.writeText(p.password_hash)}
+              onClick={() =>
+                navigator.clipboard.writeText(p.password_decrypted)
+              }
             >
-              Copy Hash
+              Copy Password
             </button>
           </div>
         ))}
